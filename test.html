@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>404: Game Not Found</title>
+
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+      body {
+        background-color: #101010;
+        color: #ffffff;
+        font-family: 'Press Start 2P', cursive;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+
+      #ready-page, #game {
+        text-align: center;
+        max-width: 1000px;
+        width: 100%;
+        padding: 60px;
+        border: 2px solid #ff77e9;
+        border-radius: 10px;
+        background-color: #1e1e1e;
+        box-shadow: 0 0 20px #ff77e9;
+        margin: 20px;
+        display: none; /* Hide both sections initially */
+      }
+
+      #ready-page.active, #game.active {
+        display: block; /* Show the active section */
+      }
+
+      #title {
+        font-size: 1.8em;
+        margin-bottom: 30px;
+        color: #ff77e9;
+      }
+
+      #description {
+        font-size: 1.1em;
+        margin-bottom: 60px;
+        color: #77ddff;
+      }
+
+      #score,
+      #timer {
+        font-size: 1em;
+        margin: 20px 0;
+        color: #ff77e9;
+      }
+
+      input {
+        background-color: #333;
+        color: #ffffff;
+        border: 2px solid #ff77e9;
+        padding: 20px 30px;
+        font-size: 1.1em;
+        text-align: center;
+        font-family: 'Press Start 2P', cursive;
+        border-radius: 5px;
+        margin: 20px 0;
+        width: calc(100% - 80px);
+      }
+
+      input::placeholder {
+        color: #888;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: #77ddff;
+        caret-color: transparent;
+      }
+
+      button {
+        background-color: #ff77e9;
+        color: #ffffff;
+        border: none;
+        padding: 20px 40px;
+        font-size: 1.2em;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 20px;
+        box-shadow: 0 0 10px #ff77e9;
+      }
+
+      button:hover {
+        background-color: #ff44cc;
+      }
+
+      p {
+        font-size: 1.2em;
+      }
+
+      .correct {
+        animation: correctAnimation .5s ease;
+      }
+
+      .incorrect {
+        animation: incorrectAnimation .5s ease;
+      }
+
+      @keyframes correctAnimation {
+        0% { color: #ff77e9; }
+        25% { color: #77dd77; }
+        50% { color: #ff77e9; }
+        75% { color: #77dd77; }
+        100% { color: #ff77e9; }
+      }
+
+      @keyframes incorrectAnimation {
+        0% { color: #ff77e9; }
+        25% { color: #db3a3a; }
+        50% { color: #ff77e9; }
+        75% { color: #db3a3a; }
+        100% { color: #ff77e9; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ready-page" class="active">
+      <h2>404: Game Not Found</h2>
+      <p>Guess the HTTP status codes based on their descriptions. Type the 3-digit status code and press Enter. Try to get as many correct as you can before time runs out!</p>
+      <button onclick="startGame()">Start Game</button>
+    </div>
+
+    <div id="game">
+      <h2 id="title"></h2>
+      <div id="description"></div>
+      <input type="text" id="answer" placeholder="Guess the status code" oninput="validateInput(this)" onkeydown="if (event.keyCode == 13) checkAnswer(this.value)">
+      <div id="score">Score: 0</div>
+      <div id="timer">Time left: 60s</div>
+    </div>
+
+    <script type="text/javascript">
+        const statusCodes = {
+          100: {
+            title: "Continue",
+            description: "The server has received the request headers and the client should proceed to send the request body."
+          },
+          101: {
+            title: "Switching Protocols",
+            description: "The requester has asked the server to switch protocols."
+          },
+          102: {
+            title: "Processing",
+            description: "The server has received and is processing the request."
+          },
+          103: {
+            title: "Early Hints",
+            description: "Used to return some response headers before final HTTP message."
+          },
+          200: {
+            title: "OK",
+            description: "The request has succeeded."
+          },
+          201: {
+            title: "Created",
+            description: "The request has been fulfilled and has resulted in one or more new resources being created."
+          },
+          202: {
+            title: "Accepted",
+            description: "The request has been accepted for processing, but the processing has not been completed."
+          },
+          203: {
+            title: "Non-Authoritative Information",
+            description: "The request has been successfully processed, but is returning information that may be from another source."
+          },
+          204: {
+            title: "No Content",
+            description: "The request has been successfully processed, but is not returning any content."
+          },
+          205: {
+            title: "Reset Content",
+            description: "The request has been successfully processed, but is not returning any content, and requires that the requester reset the document view."
+          },
+          206: {
+            title: "Partial Content",
+            description: "The server is delivering only part of the resource due to a range header sent by the client."
+          },
+          207: {
+            title: "Multi-Status",
+            description: "The message body that follows is by default an XML message and can contain a number of separate response codes, depending on how many sub-requests were made."
+          },
+          208: {
+            title: "Already Reported",
+            description: "The members of a DAV binding have already been enumerated in a previous reply to this request, and are not being included again."
+          },
+          226: {
+            title: "IM Used",
+            description: "The server has fulfilled a GET request for the resource, and the response is a representation of the result of one or more instance-manipulations applied to the current instance."
+          },
+          300: {
+            title: "Multiple Choices",
+            description: "A link list. The user can select a link and go to that location. Maximum five addresses."
+          },
+          301: {
+            title: "Moved Permanently",
+            description: "The requested page has moved to a new URL."
+          },
+          302: {
+            title: "Found",
+            description: "The requested page has moved temporarily to a new URL."
+          },
+          303: {
+            title: "See Other",
+            description: "The requested page can be found under a different URL."
+          },
+          304: {
+            title: "Not Modified",
+            description: "Indicates the requested page has not been modified since last requested."
+          },
+          305: {
+            title: "Use Proxy",
+            description: "The requested URL must be accessed through the proxy mentioned in the Location header."
+          },
+          307: {
+            title: "Temporary Redirect",
+            description: "The requested page has moved temporarily to a new URL."
+          },
+          308: {
+            title: "Permanent Redirect",
+            description: "The requested page has moved permanently to a new URL."
+          },
+          400: {
+            title: "Bad Request",
+            description: "The server did not understand the request."
+          },
+          401: {
+            title: "Unauthorized",
+            description: "The requested page needs a username and a password."
+          },
+          403: {
+            title: "Forbidden",
+            description: "Access is forbidden to the requested page."
+          },
+          404: {
+            title: "Not Found",
+            description: "The server can not find the requested page."
+          },
+          405: {
+            title: "Method Not Allowed",
+            description: "The method specified in the request is not allowed."
+          },
+          406: {
+            title: "Not Acceptable",
+            description: "The server can only generate a response that is not accepted by the client."
+          },
+          407: {
+            title: "Proxy Authentication Required",
+            description: "You must authenticate with a proxy server before this request can be served."
+          },
+          408: {
+            title: "Request Timeout",
+            description: "The request took longer than the server was prepared to wait."
+          },
+          409: {
+            title: "Conflict",
+            description: "The request could not be completed because of a conflict."
+          },
+          410: {
+            title: "Gone",
+            description: "The requested page is no longer available."
+          },
+          411: {
+            title: "Length Required",
+            description: "The 'Content-Length' is not defined. The server will not accept the request without it."
+          },
+          412: {
+            title: "Precondition Failed",
+            description: "The pre-condition given in the request evaluated to false by the server."
+          },
+          413: {
+            title: "Request Entity Too Large",
+            description: "The server will not accept the request, because the request entity is too large."
+          },
+          414: {
+            title: "Request-URI Too Long",
+            description: "The server will not accept the request, because the URL is too long."
+          },
+          415: {
+            title: "Unsupported Media Type",
+            description: "The server will not accept the request, because the media type is not supported."
+          },
+          416: {
+            title: "Requested Range Not Satisfiable",
+            description: "The client has asked for a portion of the file, but the server cannot supply that portion."
+          },
+          417: {
+            title: "Expectation Failed",
+            description: "The server cannot meet the requirements of the Expect request-header field."
+          },
+          418: {
+            title: "I'm a teapot",
+            description: "The HTCPCP server is a teapot."
+          },
+          421: {
+            title: "Misdirected Request",
+            description: "The request was directed at a server that is not able to produce a response."
+          },
+          422: {
+            title: "Unprocessable Entity",
+            description: "The request was well-formed but was unable to be followed due to semantic errors."
+          },
+          423: {
+            title: "Locked",
+            description: "The resource that is being accessed is locked."
+          },
+          424: {
+            title: "Failed Dependency",
+            description: "The request failed due to failure of a previous request."
+          },
+          425: {
+            title: "Too Early",
+            description: "Indicates that the server is unwilling to risk processing a request that might be replayed."
+          },
+          426: {
+            title: "Upgrade Required",
+            description: "The client should switch to a different protocol."
+          },
+          428: {
+            title: "Precondition Required",
+            description: "The origin server requires the request to be conditional."
+          },
+          429: {
+            title: "Too Many Requests",
+            description: "The user has sent too many requests in a given amount of time."
+          },
+          431: {
+            title: "Request Header Fields Too Large",
+            description: "The server is unwilling to process the request because either an individual header field, or all the header fields collectively, are too large."
+          },
+          451: {
+            title: "Unavailable For Legal Reasons",
+            description: "The server is denying access to the resource as a consequence of a legal demand."
+          },
+          500: {
+            title: "Internal Server Error",
+            description: "The server encountered an unexpected condition."
+          },
+          501: {
+            title: "Not Implemented",
+            description: "The server does not support the functionality required to fulfill the request."
+          },
+          502: {
+            title: "Bad Gateway",
+            description: "The server, while acting as a gateway or proxy, received an invalid response from the upstream server."
+          },
+          503: {
+            title: "Service Unavailable",
+            description: "The server is currently unavailable (overloaded or down)."
+          },
+          504: {
+            title: "Gateway Timeout",
+            description: "The server, while acting as a gateway or proxy, did not receive a timely response from the upstream server."
+          },
+          505: {
+            title: "HTTP Version Not Supported",
+            description: "The server does not support the HTTP protocol version used in the request."
+          },
+          506: {
+            title: "Variant Also Negotiates",
+            description: "Transparent content negotiation for the request results in a circular reference."
+          },
+          507: {
+            title: "Insufficient Storage",
+            description: "The server is unable to store the representation needed to complete the request."
+          },
+          508: {
+            title: "Loop Detected",
+            description: "The server detected an infinite loop while processing the request."
+          },
+          510: {
+            title: "Not Extended",
+            description: "Further extensions to the request are required for the server to fulfill it."
+          },
+          511: {
+            title: "Network Authentication Required",
+            description: "The client needs to authenticate to gain network access."
+          }
+        };
+
+        let usedQuestions = [];
+        let score = 0;
+        let timeLeft = 60;
+        let currentQuestion = null;
+
+        function startGame() {
+          score = 0;
+          timeLeft = 60;
+
+          document.getElementById('ready-page').classList.remove('active');
+          document.getElementById('game').classList.add('active');
+
+          updateScore();
+          updateTimer();
+          newQuestion();
+
+          document.getElementById('answer').focus();
+        }
+
+        function newQuestion() {
+          const codes = Object.keys(statusCodes);
+
+          let selection = Math.floor(Math.random() * codes.length);
+
+          while (usedQuestions.includes(codes[selection])) {
+            selection = Math.floor(Math.random() * codes.length);
+          }
+
+          const correctCode = codes[selection];
+
+          currentQuestion = correctCode;
+
+          usedQuestions.push(correctCode);
+
+          document.getElementById('answer').value = '';
+          document.getElementById('title').textContent = statusCodes[correctCode].title;
+          document.getElementById('description').textContent = statusCodes[correctCode].description;
+        }
+
+        function checkAnswer(selectedCode) {
+          selectedCode = parseInt(selectedCode, 10);
+
+          if (selectedCode == currentQuestion) {
+            score += 10;
+            timeLeft += 5;
+            updateScore();
+            showFeedback(true);
+          } else {
+            showFeedback(false);
+          }
+
+          newQuestion();
+        }
+
+        function showFeedback(isCorrect) {
+          const gameElement = document.getElementById('score');
+
+          if (isCorrect) {
+            gameElement.classList.add('correct');
+          } else {
+            gameElement.classList.add('incorrect');
+          }
+          setTimeout(() => {
+            gameElement.classList.remove('correct', 'incorrect');
+          }, 500);
+        }
+
+        function updateScore() {
+          document.getElementById('score').textContent = `Score: ${score}`;
+        }
+
+        function updateTimer() {
+          const timerElement = document.getElementById('timer');
+          timerElement.textContent = `Time left: ${timeLeft}s`;
+
+          if (timeLeft > 0) {
+            timeLeft--;
+            setTimeout(updateTimer, 1000);
+          } else {
+            endGame();
+          }
+        }
+
+        function endGame() {
+          document.getElementById('game').innerHTML = `<h2>Game Over!</h2><p>Your final score: ${score}</p>`;
+        }
+
+        function validateInput(input) {
+          if (input.value.length > 3) {
+            input.value = input.value.slice(0, 3);
+          }
+
+          input.value = input.value.replace(/[^0-9]/g, '');
+        }
+    </script>
+  </body>
+</html>
